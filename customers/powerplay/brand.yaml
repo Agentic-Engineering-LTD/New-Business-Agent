@@ -1,0 +1,62 @@
+# PowerPlay — brand voice & visual identity
+#
+# Read by the Outreach Drafter (voice + signature + compliance footer)
+# and the renderers (one-pager + digest visual styling).
+#
+# Logo and font paths are filesystem references inside the customer
+# directory — supply the actual assets before the first one-pager is
+# rendered. Until they exist, the renderer falls back to a text-only
+# header.
+
+display_name: PowerPlay Brands
+legal_name: PowerPlay Brands Ltd
+website: https://www.powerplaybrands.com/
+
+voice:
+  register: warm_commercial
+  notes: |
+    PowerPlay is a brand-licensing house, not a fashion agency. Outreach
+    should sound like a commercial partner who knows the buying calendar
+    — direct, brand-savvy, never gushy, never name-dropping more than
+    one or two licensed properties per message. Avoid superlatives
+    ("incredible", "amazing"). Avoid emoji.
+  forbidden_phrases:
+    - "I hope this email finds you well"
+    - "circle back"
+    - "synergy"
+    - "unlock value"
+  use_em_dash: true
+  contractions_ok: true
+
+signature: |
+  Best,
+  {{ sender.full_name }}
+  {{ sender.role }}, PowerPlay Brands
+  {{ sender.email }}
+
+opt_out_footer: |
+  If you would prefer not to receive future emails from PowerPlay Brands,
+  reply with "unsubscribe" and we will remove you from our outreach list.
+
+# Visual identity — used by the PDF renderer for one-pagers.
+logo:
+  primary_path: customers/powerplay/assets/logo_primary.png  # supply before first render
+  mono_path: customers/powerplay/assets/logo_mono.png
+
+colours:
+  primary: "#0B1F3A"
+  accent: "#E5446D"
+  text: "#1A1A1A"
+  muted: "#5A5A5A"
+  background: "#FFFFFF"
+
+typography:
+  heading_font: "Inter"
+  body_font: "Inter"
+  fallback_font: "Helvetica"
+
+# Allows the Opportunity Assessor to assess brand_relevance.
+licensed_portfolio_summary: |
+  PowerPlay holds licensed-apparel rights spanning family / kids
+  character properties, sports federation properties, and lounge /
+  sleepwear licences. The portfolio skews family-retailer-friendly.

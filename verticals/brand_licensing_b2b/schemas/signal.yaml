@@ -1,0 +1,111 @@
+# Signal schema — Brand Licensing B2B
+#
+# Signal kinds the Refresh / Watch agent is allowed to write. Anything not
+# in this taxonomy is dropped — the discipline keeps the pipeline legible
+# to the customer's commercial team and the Hand-off agent's digest tight.
+
+record_kind: signal
+natural_key: composite  # (target_organisation_id, source_url, signal_kind, observed_date)
+
+signal_kinds:
+
+  range_launch:
+    description: |
+      Retailer launches a new branded or licensed range. Strongest signal
+      kind — usually means active buying conversations in the 3–6 months
+      preceding.
+    relevance: high
+    typical_sources: [trade_press, retailer_press_release, retailer_website]
+    dedupe_window_days: 30
+
+  category_expansion:
+    description: |
+      Retailer publicly announces expanding into a new apparel category
+      (kidswear, sportswear, character licensing, etc.).
+    relevance: high
+    typical_sources: [trade_press, results_announcement]
+    dedupe_window_days: 60
+
+  exec_change:
+    description: |
+      New buying director, head of category, head of licensing, or
+      equivalent. Creates an opening — incoming exec often resets supplier
+      list within 90 days.
+    relevance: high
+    typical_sources: [trade_press, retailer_press_release, professional_announcement]
+    dedupe_window_days: 14
+
+  rfp_issued:
+    description: |
+      Public or industry-visible RFP / RFQ from the retailer for branded
+      or licensed apparel. Direct buying intent.
+    relevance: critical
+    typical_sources: [retailer_procurement_portal, trade_press]
+    dedupe_window_days: 7
+
+  store_estate_change:
+    description: |
+      Significant store openings, closings, refits, or banner conversions
+      — changes the volume profile and may shift category mix.
+    relevance: medium
+    typical_sources: [trade_press, results_announcement]
+    dedupe_window_days: 30
+
+  partnership_announcement:
+    description: |
+      Public partnership with a brand or licensor that is competitive or
+      adjacent to the customer's portfolio. Cuts both ways — could be
+      crowding-out or a category vote-of-confidence.
+    relevance: medium
+    typical_sources: [trade_press, retailer_press_release]
+    dedupe_window_days: 30
+
+  results_or_strategy_update:
+    description: |
+      Annual / interim results or strategy day with explicit commentary
+      on apparel, licensing, or category investment.
+    relevance: medium
+    typical_sources: [results_announcement, investor_relations]
+    dedupe_window_days: 90
+
+  awards_or_recognition:
+    description: |
+      Retailer or one of its buyers wins industry awards / recognition.
+      Low-relevance for direct buying but a useful warm-open angle.
+    relevance: low
+    typical_sources: [trade_press]
+    dedupe_window_days: 60
+
+fields:
+  signal_kind:
+    type: enum
+    required: true
+    values_from: signal_kinds
+  target_organisation_id:
+    type: ref
+    required: true
+  observed_date:
+    type: date
+    required: true
+  source_url:
+    type: string
+    required: true
+  source_publication:
+    type: string
+    required: false
+  headline:
+    type: string
+    required: true
+  summary:
+    type: string
+    required: true
+    description: |
+      Two-to-four sentence summary in the Refresh / Watch agent's own
+      words. Never paste source content verbatim beyond a short quote.
+  relevance:
+    type: enum
+    required: true
+    values: [critical, high, medium, low]
+    description: |
+      Default is the relevance from the signal_kind, but the agent may
+      promote or demote one step based on context.

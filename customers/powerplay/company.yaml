@@ -1,0 +1,9 @@
+# PowerPlay — company identity
+#
+# Pin to the brand_licensing_b2b vertical pack. Anything customer-agnostic
+# about the vertical lives there; this file is only for PowerPlay's identity
+# and the platform-level pinning.
+
+name: PowerPlay Brands
+vertical: brand_licensing_b2b
+timezone: Europe/London

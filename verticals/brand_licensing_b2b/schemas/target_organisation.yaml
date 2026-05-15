@@ -1,0 +1,105 @@
+# Target organisation schema — Brand Licensing B2B
+#
+# Fields the Target Identifier writes when discovering a retailer. The
+# Organisation Mapper enriches the same record with structural detail
+# (banner brands, group structure, etc.).
+#
+# The natural_key is the field used by the CRM adapter for idempotent upsert.
+# In Airtable, this is what the adapter's `find by natural key` query filters
+# on before deciding insert vs update.
+
+record_kind: target_organisation
+natural_key: domain
+
+fields:
+  legal_name:
+    type: string
+    required: true
+    description: |
+      Registered legal name. For groups (e.g. parent + multiple banners),
+      this is the parent unless the operating banner is itself the
+      contracting entity.
+
+  trading_name:
+    type: string
+    required: false
+    description: |
+      The name on the shopfront / press / website if different from
+      legal_name.
+
+  domain:
+    type: string
+    required: true
+    description: |
+      Primary corporate domain (no scheme, no path). Used as natural key.
+
+  registered_number:
+    type: string
+    required: false
+    description: |
+      Companies House number for UK entities, equivalent for other
+      jurisdictions. Helps disambiguate same-named entities.
+
+  hq_country:
+    type: iso_3166_alpha2
+    required: true
+
+  hq_region:
+    type: string
+    required: false
+    description: |
+      Free-text region — used to scope EU / UK / Nordic / etc. searches.
+
+  store_count_band:
+    type: enum
+    required: true
+    values:
+      - "<50"
+      - "50-200"
+      - "200-1000"
+      - "1000-5000"
+      - ">5000"
+      - "online_only"
+    description: |
+      Bands rather than precise counts — store counts are noisy and
+      false-precision invites disagreement that wastes review time.
+
+  banner_brands:
+    type: list[string]
+    required: false
+    description: |
+      Trading banners or fascia the group operates (a group can carry
+      multiple banners — Tesco operates Tesco + Booker + One Stop, etc.).
+
+  categories_carried:
+    type: list[string]
+    required: false
+    description: |
+      Apparel and adjacent categories observed on shelf or online. Drawn
+      from the customer-specific category vocabulary in
+      customers/<customer>/targets.yaml.
+
+  revenue_band:
+    type: enum
+    required: false
+    values:
+      - "<£10m"
+      - "£10m-£50m"
+      - "£50m-£250m"
+      - "£250m-£1bn"
+      - ">£1bn"
+      - "unknown"
+
+  parent_group:
+    type: string
+    required: false
+    description: |
+      Parent group legal name if this entity is part of a larger group.
+
+  source_provenance:
+    type: list[object]
+    required: true
+    description: |
+      Where each fact came from. List of {field, source_url, observed_at}
+      objects. Required so the Hand-off agent can cite sources without
+      the operator having to chase the original lookup.

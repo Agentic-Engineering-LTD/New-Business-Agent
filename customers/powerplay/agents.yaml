@@ -1,0 +1,47 @@
+# PowerPlay — agent toggles
+#
+# The full org chart is defined in nba_platform/agents/. This file says
+# which agents are active for PowerPlay, and any per-agent flags that
+# aren't threshold-shaped (those live in thresholds.yaml).
+
+target_identifier:
+  enabled: true
+
+org_mapper:
+  enabled: true
+
+contact_enricher:
+  enabled: true
+  notes: |
+    Cognism as enrichment provider. Personal-mobile fields disabled per
+    thresholds.yaml. During calibration, all new stakeholder writes go
+    to the Approvals queue in SQLite; the Hand-off agent surfaces them
+    in the weekly snapshot's Pending_Approvals sheet and in
+    approvals_inbox.csv for in-place editing by the customer.
+
+opportunity_assessor:
+  enabled: true
+
+hand_off:
+  enabled: true
+  notes: |
+    Produces the weekly XLSX/CSV snapshot, account one-pagers on demand,
+    and applies decisions from approvals_inbox.csv on each wake.
+
+refresh_watch:
+  enabled: true
+
+outreach_drafter:
+  enabled: true
+  notes: |
+    Enabled for PowerPlay's pilot. Throttle settings in outputs.yaml.
+    All drafts land as `pending_review` activities — they appear in the
+    weekly snapshot's Activities sheet for the customer's commercial
+    team to review and send from their own email. Sending is NEVER
+    automated.
+
+proactive_recommender:
+  enabled: false
+  notes: |
+    Interface-only at this stage of the platform. Re-evaluate after
+    PowerPlay has 60+ days of pipeline data.

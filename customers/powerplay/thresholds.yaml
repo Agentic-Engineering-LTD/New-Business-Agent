@@ -1,0 +1,62 @@
+# PowerPlay — thresholds & overrides
+#
+# Numeric tuning for the calibration window. Anything not specified here
+# falls back to platform defaults.
+#
+# Calibration window: 6 weeks from first agent wake. After that, the
+# require_approval flags in crm.yaml are reviewed and likely relaxed.
+
+confidence:
+  contact_enricher:
+    accept_band: high
+    review_band: medium
+    reject_band: low
+    # During calibration, ALL contact_enricher writes go to Approvals
+    # regardless of band — see crm.yaml require_approval map. After
+    # calibration, only review_band lands in the queue.
+
+freshness:
+  target_organisation_check_days: 30
+  stakeholder_check_days: 60
+  stakeholder_archive_after_days: 365
+  signal_lookback_days_for_digest: 14
+  signal_lookback_days_for_one_pager: 90
+
+fit_score:
+  weight_overrides: {}
+  # Empty during calibration. Recommendation: review at the 6-week mark
+  # and tune category_fit and white_space weights against PowerPlay's
+  # observed pipeline outcomes.
+
+  promote_threshold_score: 75
+  warm_threshold_score: 55
+  watch_threshold_score: 35
+
+outreach:
+  max_body_words: 140
+  max_subject_chars: 80
+  signal_hook_cooldown_days: 30
+  variants_per_draft: 2  # signal_hook + category_fit_hook by default
+
+enrichment:
+  allow_personal_contact: false
+  # Personal-mobile / personal-email fields are NOT written. Work email
+  # and work direct-phone only.
+
+budget:
+  monthly_cap_usd:
+    target_identifier: 60
+    org_mapper: 40
+    contact_enricher: 80
+    opportunity_assessor: 30
+    hand_off: 20
+    refresh_watch: 50
+    outreach_drafter: 60
+    # proactive_recommender disabled — no budget allocated.
+  headroom_factor: 0.10
+  # 10% headroom before an agent is paused for budget breach.
+
+approval_queue:
+  surface_in_digest_threshold: 5
+  # If 5+ items are pending review when the weekly digest assembles,
+  # the digest's "Health & exceptions" section calls it out.

@@ -1,0 +1,74 @@
+# PowerPlay — target definition
+#
+# What a "good target" looks like for PowerPlay. The Target Identifier
+# reads this to scope discovery; the Opportunity Assessor reads it to
+# score fit; the Hand-off agent reads it to construct the weekly digest's
+# "new targets" section.
+#
+# These are PowerPlay's specifics. None of this is platform behaviour or
+# vertical behaviour — both of those live elsewhere and apply across
+# customers.
+
+geographies_in_scope:
+  - GB
+  - IE
+  - DE
+  - FR
+  - NL
+  - BE
+  - ES
+  - IT
+  - PT
+  - PL
+  - CZ
+  - SE
+  - DK
+  - NO
+  - FI
+
+channels_in_scope:
+  - bricks_and_mortar
+  - bricks_and_mortar_plus_online
+  # PowerPlay's pilot excludes pure online_only retailers — the deal
+  # economics work better with physical-store retailers. Re-evaluate
+  # after the first pipeline review.
+
+store_count_bands_in_scope:
+  - "200-1000"
+  - "1000-5000"
+  - ">5000"
+
+categories_in_scope:
+  - kidswear
+  - character_licensed_apparel
+  - sports_licensed_apparel
+  - lounge_and_sleepwear
+  - festive_apparel
+  - back_to_school_apparel
+  - accessories
+
+deal_size_profile:
+  preferred_min_units_per_range: 10000
+  preferred_min_doors: 50
+  notes: |
+    Tuned to PowerPlay's economics: ranges below ~10k units across <50
+    doors are typically below contribution; bands above push hot/warm.
+
+retailer_archetypes:
+  # Free-text archetypes Target Identifier uses as discovery queries.
+  # Listed in PowerPlay's order of preference.
+  - "EU supermarkets with own-brand apparel programmes"
+  - "UK value retailers with kidswear / character ranges"
+  - "EU department-store groups with branded apparel programmes"
+  - "Mid-market fashion multiples with licensed-product appetite"
+  - "Discount retailers with seasonal apparel ranges"
+
+non_compete_brand_partnerships: []
+  # Empty for now. Populate per-licensor restriction as needed — the
+  # ranking rules read this list as a hard disqualifier.
+
+private_intelligence:
+  # Free-text NDA-covered intelligence PowerPlay supplies. Rendered only
+  # into PowerPlay's own outputs, never logged or shared.
+  # Populate via direct edit; not derived from any agent.
+  notes: ""

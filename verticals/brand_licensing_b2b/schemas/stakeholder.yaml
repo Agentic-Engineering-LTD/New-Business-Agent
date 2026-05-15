@@ -1,0 +1,128 @@
+# Stakeholder schema — Brand Licensing B2B
+#
+# Fields the Contact Enricher writes for a named decision-maker, and the
+# role taxonomy the Organisation Mapper resolves against. Customers can
+# narrow this taxonomy in customers/<customer>/personas.yaml (subset only;
+# they cannot invent new roles outside this vocabulary without a vertical
+# pack update).
+
+record_kind: stakeholder
+natural_key: work_email
+
+fields:
+  full_name:
+    type: string
+    required: true
+
+  first_name:
+    type: string
+    required: false
+
+  last_name:
+    type: string
+    required: false
+
+  work_email:
+    type: string
+    required: true
+    description: |
+      The natural key. Required because anything weaker — names + company —
+      collides too often at large groups.
+
+  direct_phone:
+    type: string
+    required: false
+    description: |
+      Direct work phone where the enrichment provider can supply it.
+      Personal mobile numbers are not written by default; the customer's
+      thresholds.yaml controls whether they are.
+
+  role_title:
+    type: string
+    required: true
+    description: |
+      The exact title from the enrichment provider — preserved as written
+      so that human reviewers can sanity-check the role_band mapping.
+
+  role_band:
+    type: enum
+    required: true
+    values:
+      - buying_director
+      - head_of_category
+      - category_manager
+      - senior_buyer
+      - buyer
+      - assistant_buyer
+      - head_of_licensing
+      - licensing_manager
+      - private_label_director
+      - private_label_manager
+      - head_of_apparel
+      - apparel_manager
+      - merchandising_director
+      - merchandiser
+      - sourcing_director
+      - other_decision_maker
+    description: |
+      The platform-wide bucketing. Drives Outreach Drafter tone and
+      Opportunity Assessor weights. New bands require a vertical pack
+      update — they are not customer-extensible.
+
+  reports_to:
+    type: string
+    required: false
+    description: |
+      Free-text name or stakeholder id of the line manager, if known.
+
+  target_organisation_id:
+    type: ref
+    required: true
+    description: |
+      Reference to the target_organisation record. Set by the CRM adapter
+      at write time.
+
+  confidence_band:
+    type: enum
+    required: true
+    values: [high, medium, low]
+
+  freshness_band:
+    type: enum
+    required: true
+    values: [fresh, aging, stale]
+    description: |
+      Maintained by the Refresh / Watch agent. Drives re-enrichment.
+
+  last_verified_at:
+    type: datetime
+    required: true
+
+  source_provenance:
+    type: list[object]
+    required: true
+    description: |
+      Same shape as target_organisation. Lets the Hand-off agent cite
+      sources in account one-pagers.
+
+role_taxonomy_notes: |
+  The role_band values above are the single source of truth for "who do we
+  contact?" across customers in this vertical. They cover three rough
+  archetypes:
+
+    Buying / Merchandising line — buying_director, head_of_category,
+      category_manager, senior_buyer, buyer, assistant_buyer,
+      merchandising_director, merchandiser. The primary commercial
+      counterparty for branded apparel ranges.
+
+    Licensing line — head_of_licensing, licensing_manager. Present at
+      retailers with mature licensed-product programmes; can short-circuit
+      the buying-line conversation when a licence is the deal shape.
+
+    Private label line — private_label_director, private_label_manager,
+      head_of_apparel, apparel_manager, sourcing_director. Relevant when
+      the deal shape is private-label production for the retailer's own
+      brand rather than a licensed third-party brand.
+
+  Customers narrow this in personas.yaml; the Organisation Mapper resolves
+  ONLY against the customer-narrowed subset, never the full taxonomy.

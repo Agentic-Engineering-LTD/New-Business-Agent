@@ -1,0 +1,185 @@
+# Paperclip company template — New Business Agent
+#
+# This file is the importable Paperclip *company* definition for one
+# customer's deployment of the New Business Agent platform.
+#
+# Adapt per customer:
+#   1. Change `company.name` and `company.customer_id` to the customer key
+#      (e.g. `powerplay`).
+#   2. Confirm budgets in `agents.*.budget` match the customer's
+#      thresholds.yaml.
+#   3. Confirm `goal` reflects the customer's pilot scope.
+#
+# Paperclip semantics referenced in this template:
+#   - company:        the org being modelled (one per customer)
+#   - agents:         heartbeats with adapter configs (skills + models)
+#   - skills:         injected at runtime from nba_platform/agents/*/SKILL.md
+#   - goals:          declarative outcomes the company is optimising for
+#   - tickets:        units of work flowing between agents
+#   - budgets:        per-agent monthly USD caps with approval gates
+#   - governance:     audit + approval primitives
+
+company:
+  name: PowerPlay — New Business Agent
+  customer_id: powerplay
+  description: |
+    Brand Licensing B2B pipeline for PowerPlay Brands. Discovers, enriches,
+    scores, and prepares outreach against EU/UK retailer targets. All
+    sending stays human; the agents stop at draft + Approvals queue.
+
+goal:
+  primary: |
+    Build PowerPlay's qualified new-business pipeline: at least 40 hot/warm
+    targets with named, high-confidence stakeholders and live signal trails
+    by week 12.
+  success_metrics:
+    - hot_band_target_count
+    - warm_band_target_count
+    - drafts_reviewed_per_week
+    - approval_rate_contact_enricher
+
+governance:
+  approval_policy:
+    # Routed via the CRM adapter's Approvals queue (see customer's crm.yaml
+    # require_approval map). Paperclip surfaces these in its own UI.
+    surface_in_ui: true
+    surface_in_weekly_digest: true
+  audit:
+    sink: paperclip_native
+    retention_days: 365
+
+# Org chart — one entry per agent, referencing its SKILL.md and the
+# adapters it can call. Paperclip injects the skill at runtime; the
+# agent itself is whatever runtime is wired (Claude Code, a Python
+# script behind a webhook, an MCP runtime).
+
+agents:
+
+  target_identifier:
+    enabled_by_customer_config: true   # actual toggle is customers/<customer>/agents.yaml
+    skill_path: nba_platform/agents/target_identifier/SKILL.md
+    model_role: reasoning
+    adapters:
+      - crm
+      - search
+    budget:
+      monthly_usd: 60
+      headroom_factor: 0.10
+
+  org_mapper:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/org_mapper/SKILL.md
+    model_role: reasoning
+    adapters:
+      - crm
+      - search
+    budget:
+      monthly_usd: 40
+
+  contact_enricher:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/contact_enricher/SKILL.md
+    model_role: light
+    adapters:
+      - crm
+      - enrichment
+    budget:
+      monthly_usd: 80
+
+  opportunity_assessor:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/opportunity_assessor/SKILL.md
+    model_role: reasoning
+    adapters:
+      - crm
+    budget:
+      monthly_usd: 30
+
+  hand_off:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/hand_off/SKILL.md
+    model_role: light
+    adapters:
+      - crm
+    budget:
+      monthly_usd: 20
+
+  refresh_watch:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/refresh_watch/SKILL.md
+    model_role: light
+    adapters:
+      - crm
+      - search
+    schedule:
+      cron: "0 6 * * *"
+      timezone: Europe/London
+    budget:
+      monthly_usd: 50
+
+  outreach_drafter:
+    enabled_by_customer_config: true
+    skill_path: nba_platform/agents/outreach_drafter/SKILL.md
+    model_role: reasoning
+    adapters:
+      - crm
+    budget:
+      monthly_usd: 60
+
+  proactive_recommender:
+    enabled_by_customer_config: false   # disabled for PowerPlay
+    skill_path: nba_platform/agents/proactive_recommender/SKILL.md
+    model_role: reasoning
+    adapters:
+      - crm
+    budget:
+      monthly_usd: 0
+
+# Adapters declared once for the company; per-agent `adapters` lists above
+# reference these by key.
+
+adapter_configs:
+
+  crm:
+    kind: sqlite
+    config_file: customers/powerplay/crm.yaml
+    # The pilot substrate is SQLite — a single .db file in the container
+    # volume. No external SaaS dependency. The Airtable adapter is
+    # available as a future feature add-on; see ops/airtable_schema.md.
+
+  outputs:
+    # Output rendering — XLSX/CSV pipeline snapshots, weekly digest,
+    # account one-pagers. The exporter reads column shape from the
+    # vertical pack's schemas/ and brand styling from the customer's
+    # brand.yaml.
+    kind: xlsx_csv
+    config_file: customers/powerplay/outputs.yaml
+
+  search:
+    kind: tavily
+    secret_name: TAVILY_API_KEY
+
+  enrichment:
+    # Multi-provider waterfall. Customer's enrichment.yaml declares the
+    # providers list and routing strategy; the platform's EnrichmentRouter
+    # orchestrates them. BYOK per provider — secrets live in Paperclip.
+    kind: router
+    config_file: customers/powerplay/enrichment.yaml
+
+  llm:
+    kind: openrouter
+    secret_name: OPENROUTER_API_KEY
+    model_roles:
+      reasoning: anthropic/claude-sonnet-4-6
+      light: anthropic/claude-haiku-4-5
+
+# Schedule overrides — Paperclip drives time-based wakes from here.
+schedules:
+  refresh_watch_daily:
+    agent: refresh_watch
+    cron: "0 6 * * *"
+    timezone: Europe/London
+  weekly_digest:
+    agent: hand_off
+    cron: "0 8 * * 1"
+    timezone: Europe/London

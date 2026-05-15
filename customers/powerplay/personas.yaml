@@ -1,0 +1,41 @@
+# PowerPlay — persona subset
+#
+# The role taxonomy lives in
+# verticals/brand_licensing_b2b/schemas/stakeholder.yaml. PowerPlay's
+# pilot focuses on a subset; the Organisation Mapper resolves ONLY against
+# these role_bands. Anything outside this subset is parked.
+#
+# The seniority_priority list controls the Organisation Mapper's
+# preference order when multiple stakeholders are resolvable at the same
+# target — higher in the list = preferred contact.
+
+role_bands_in_scope:
+  - buying_director
+  - head_of_category
+  - head_of_licensing
+  - category_manager
+  - senior_buyer
+  - head_of_apparel
+
+seniority_priority:
+  - buying_director
+  - head_of_category
+  - head_of_licensing
+  - head_of_apparel
+  - category_manager
+  - senior_buyer
+
+minimum_confidence_band_to_action: medium
+# Drafts will be drafted for stakeholders at confidence_band high or
+# medium. Low-confidence stakeholders go to Approvals only.
+
+primary_first_touch_role_band: head_of_category
+# When a target has multiple in-scope stakeholders, the first draft is
+# written to this role_band. Subsequent drafts can target others.
+
+notes_for_outreach_drafter: |
+  PowerPlay's buying-line counterparties are typically time-poor.
+  Drafts should lead with the signal or the category-fit reason in the
+  first sentence — never an introduction paragraph. Subject lines that
+  reference a named range, retailer, or licensed property outperform
+  generic "Introduction" subjects in this market.

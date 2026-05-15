@@ -1,0 +1,87 @@
+# PowerPlay — output cadence & artefacts
+#
+# Pilot deliverable shape: XLSX + CSV files. No SaaS dashboard, no
+# Airtable. The Hand-off agent writes:
+#
+#   - pipeline_powerplay_<date>.xlsx  weekly snapshot workbook
+#   - pipeline_powerplay_<date>.csv.zip  same data as CSVs
+#   - approvals_inbox.csv              edit-in-place approvals queue
+#   - weekly_digest.md / email body    summary + links
+#   - account_one_pager_*.pdf          on-demand per target
+#
+# Files land in the output directory below (filesystem path inside the
+# Paperclip container — see ops/deployment.md for the volume mount).
+
+output_dir: data/powerplay/outputs
+
+pipeline_snapshot:
+  enabled: true
+  format: [xlsx, csv]
+  cadence: weekly
+  schedule:
+    cron: "0 7 * * 1"        # Monday 07:00, before the digest goes out
+    timezone: Europe/London
+  on_demand: true            # Hand-off agent can produce a fresh snapshot at any time
+
+approvals_inbox:
+  # The customer-editable CSV the Hand-off agent reads to apply
+  # approve/reject decisions on its next wake.
+  enabled: true
+  filename: approvals_inbox.csv
+  read_cadence:
+    cron: "*/30 * * * *"     # check every 30 minutes during business hours
+    timezone: Europe/London
+
+weekly_digest:
+  enabled: true
+  format: markdown_email
+  cadence: weekly
+  send_day: monday
+  send_time: "08:00"
+  timezone: Europe/London
+  recipients:
+    # Replace placeholder addresses with the real ones before first run.
+    # The Hand-off agent does not send the digest itself — it generates
+    # the markdown and emits an audit event; sending is handled by the
+    # Paperclip workflow runtime against the recipient list here.
+    - role: primary_contact
+      name: "Dan (PowerPlay)"
+      email: "REPLACE_ME@powerplaybrands.com"
+    - role: account_owner
+      name: "Jon Howells (Agentic Engineering)"
+      email: "REPLACE_ME@agentic-engineering.co.uk"
+  include_sections:
+    - movers
+    - new_targets
+    - top_signals
+    - pending_drafts
+    - exceptions
+  attach_pipeline_snapshot: true   # the .xlsx file is attached to the digest email
+
+account_one_pager:
+  enabled: true
+  format: pdf
+  cadence: on_demand
+  trigger:
+    # An account one-pager is auto-rendered when an opportunity_assessor
+    # band changes upward to hot, OR when a user requests one via the
+    # approvals_inbox.csv (with kind = one_pager_request).
+    on_band_promotion_to: hot
+    on_user_request: true
+  delivery:
+    save_to_output_dir: true        # lands in output_dir/one_pagers/
+    email_to:
+      - "REPLACE_ME@powerplaybrands.com"
+
+refresh:
+  schedule:
+    cron: "0 6 * * *"
+    timezone: Europe/London
+
+outreach_drafter:
+  # Outreach Drafter is enabled — see agents.yaml — but throttled
+  # during calibration. Drafts land in the activities table with status
+  # "pending_review" and render into the Drafts section of the weekly
+  # snapshot's Activities sheet.
+  max_drafts_per_day: 10
+  max_drafts_per_target_per_30_days: 2

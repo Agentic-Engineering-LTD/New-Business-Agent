@@ -1,0 +1,76 @@
+# Retail registries — Brand Licensing B2B
+#
+# Corporate-information sources the Target Identifier and Organisation
+# Mapper consult to verify legal entity, structure, and trading status.
+# Listed in order of preferred trust. Agents should prefer registries
+# higher in this list when facts conflict.
+#
+# This file does not contain credentials. Where API access is required,
+# the secret name is referenced and the actual key is resolved through
+# Paperclip's secrets store at runtime.
+
+registries:
+
+  - id: companies_house_uk
+    name: UK Companies House
+    jurisdictions: [GB]
+    access: public_api
+    api_secret_name: COMPANIES_HOUSE_API_KEY
+    base_url: https://api.company-information.service.gov.uk/
+    use_for:
+      - legal_name_verification
+      - registered_number_verification
+      - parent_group_resolution
+      - directors_list
+    notes: |
+      Free public API. Rate-limited; the Target Identifier should batch
+      lookups rather than calling per-target.
+
+  - id: opencorporates
+    name: OpenCorporates
+    jurisdictions: [GB, IE, EU, US, global]
+    access: api
+    api_secret_name: OPENCORPORATES_API_KEY
+    base_url: https://api.opencorporates.com/
+    use_for:
+      - legal_name_verification
+      - cross_jurisdiction_resolution
+      - parent_group_resolution
+    notes: |
+      Wider geographic coverage than Companies House. Free tier is small;
+      check budget before scaling up.
+
+  - id: bvd_fame
+    name: Bureau van Dijk FAME
+    jurisdictions: [GB, IE]
+    access: subscription
+    api_secret_name: FAME_API_KEY
+    base_url: ""  # customer-specific endpoint
+    use_for:
+      - revenue_band_estimation
+      - store_count_estimation
+      - parent_group_resolution
+    notes: |
+      Paid subscription. Configure per-customer in their crm.yaml under
+      enrichment.fame.enabled — off by default. Customers opting in
+      should confirm the subscription is in place before enabling.
+
+  - id: retailer_official_website
+    name: Retailer's own corporate site
+    jurisdictions: [global]
+    access: public_web
+    use_for:
+      - banner_brands_verification
+      - categories_carried_verification
+      - store_count_estimation
+      - press_release_index
+    notes: |
+      Always cross-check facts found in registries against the retailer's
+      own About / Corporate / Investor pages. Trade press is faster but
+      noisier; corporate sites are slower but authoritative.
+
+fallback_policy: |
+  If a fact cannot be sourced from any registry above, the Target
+  Identifier may write the field marked with source_provenance.kind =
+  "inferred" and confidence "low". The Opportunity Assessor must discount
+  scores derived from inferred facts.

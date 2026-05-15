@@ -1,0 +1,51 @@
+# PowerPlay — enrichment providers & routing
+#
+# Multi-provider contact enrichment via the platform's EnrichmentRouter.
+# Same shape as OpenRouter for LLMs: providers in priority order, BYOK
+# per provider, configurable routing strategy.
+#
+# For the pilot, PowerPlay's outbound is EU/UK-focused, so Cognism is
+# priority 1 (UK/EU coverage, GDPR-positioned). Apollo and Hunter are
+# layered in as fallback for global lookups and for email verification
+# respectively. Lusha is declared but disabled — turn on if direct-dial
+# becomes part of PowerPlay's outreach pattern.
+#
+# All four providers are stubs at the time of this commit (credentials
+# in procurement). The router's boot-safe design means PowerPlay's
+# pilot can start with Cognism alone (once procured) and gain the others
+# without any agent or config-shape changes.
+
+providers:
+  - id: cognism
+    enabled: true
+    priority: 1
+    regions: [GB, IE, EU]
+    secret_name: COGNISM_API_KEY
+
+  - id: apollo
+    enabled: true
+    priority: 2
+    regions: [US, CA, global]
+    secret_name: APOLLO_API_KEY
+
+  - id: hunter
+    enabled: true
+    priority: 3
+    regions: [global]
+    secret_name: HUNTER_API_KEY
+
+  - id: lusha
+    enabled: false           # declared but off — turn on if direct-dial outreach earns its keep
+    priority: 4
+    regions: [global]
+    secret_name: LUSHA_API_KEY
+
+routing:
+  strategy: waterfall        # waterfall | merge | round_robin
+  region_aware: true         # prefer Cognism for UK/EU targets, Apollo for US
+  cache_hits: true
+  cache_ttl_days: 30         # don't re-call providers for the same (name, domain) within 30 days
+
+quality_floor:
+  min_confidence: medium     # reject low-confidence hits even if returned
+  reject_if_all_low_confidence: true

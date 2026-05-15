@@ -1,0 +1,42 @@
+# PowerPlay — persistence substrate (SQLite for pilot)
+#
+# The pilot deliverable is XLSX/CSV files — there is no Airtable, no
+# Salesforce, no other SaaS CRM. The agents persist state to a single
+# SQLite database file; the Hand-off agent renders that state into the
+# customer-facing workbooks on a weekly cadence (and on demand).
+#
+# When PowerPlay graduates to a real CRM later (Airtable as the first
+# feature add-on, or a real CRM via StackOne), this file is the only
+# thing that changes. Agent code is unaffected.
+
+kind: sqlite
+
+db_path: data/powerplay/pipeline.db
+# Relative to the container's working directory. The deployment doc
+# (ops/deployment.md) explains the volume-mount expectation:
+#   /opt/agentic/data/powerplay/  →  container:/app/data/powerplay/
+
+tables:
+  target_organisation: targets
+  stakeholder: stakeholders
+  signal: signals
+  activity: activities
+
+natural_keys:
+  target_organisation: domain
+  stakeholder: work_email
+  signal: composite       # composite of (target, source_url, signal_kind, observed_date)
+  activity: composite     # composite of (target, stakeholder, kind, created_at)
+
+require_approval:
+  # During PowerPlay's 6-week calibration window, ALL new stakeholders
+  # are gated by approval. The Hand-off agent surfaces pending items in
+  # the weekly Pending_Approvals workbook sheet + a separate
+  # approvals_inbox.csv the customer can edit in place.
+  #
+  # Once approval rate >90% sustained for 2 consecutive weeks, relax
+  # by setting stakeholder: false.
+  target_organisation: false
+  stakeholder: true
+  signal: false
+  activity: false

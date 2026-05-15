@@ -1,0 +1,88 @@
+# Trade press sources — Brand Licensing B2B
+#
+# Feeds the Refresh / Watch agent monitors for signal events. Each source
+# is fetched via the platform's search adapter (Tavily by default) — the
+# agents do not have scraping logic of their own.
+#
+# Pages and feeds change. The Refresh / Watch agent must emit a
+# source_fetch_failed audit event on a failed fetch and not silently skip.
+
+sources:
+
+  - id: retail_week
+    name: Retail Week
+    url: https://www.retail-week.com/
+    region: UK
+    access: paywall_mixed
+    signal_kinds: [exec_change, range_launch, category_expansion, store_estate_change, partnership_announcement, awards_or_recognition]
+    notes: |
+      Authoritative UK trade press for retail. Some content paywalled —
+      the Refresh / Watch agent should write a signal record with the
+      headline + summary even when the full body is gated, and let the
+      customer's commercial team open the full piece if they need to.
+
+  - id: drapers
+    name: Drapers
+    url: https://www.drapersonline.com/
+    region: UK
+    access: paywall_mixed
+    signal_kinds: [exec_change, range_launch, category_expansion, partnership_announcement, awards_or_recognition]
+    notes: |
+      Apparel-focused UK trade press. Highest hit-rate for our signal
+      kinds in the UK market.
+
+  - id: just_style
+    name: Just Style
+    url: https://www.just-style.com/
+    region: global
+    access: free
+    signal_kinds: [range_launch, category_expansion, partnership_announcement, results_or_strategy_update]
+    notes: |
+      Global apparel-industry coverage. Useful for non-UK retailers
+      especially in the EU.
+
+  - id: fashion_united
+    name: FashionUnited
+    url: https://fashionunited.uk/
+    region: global
+    access: free
+    signal_kinds: [exec_change, range_launch, partnership_announcement, awards_or_recognition]
+    notes: |
+      Fashion-industry press with strong people-news coverage — good for
+      the exec_change signal kind.
+
+  - id: licensing_source
+    name: Licensing.biz
+    url: https://www.licensing.biz/
+    region: global
+    access: free
+    signal_kinds: [partnership_announcement, range_launch, awards_or_recognition]
+    notes: |
+      Industry press specifically for the licensing trade. Often picks
+      up partnership announcements ahead of mainstream retail press.
+
+  - id: total_licensing
+    name: Total Licensing
+    url: https://www.totallicensing.com/
+    region: global
+    access: free
+    signal_kinds: [partnership_announcement, range_launch]
+    notes: |
+      Licensing-trade publication. Lower volume than Licensing.biz but
+      sometimes earlier on EU-market stories.
+
+  - id: retailer_press_releases
+    name: Retailer corporate press release pages
+    url: ""  # per-retailer, resolved by the Organisation Mapper into the target record
+    region: global
+    access: free
+    signal_kinds: [range_launch, exec_change, store_estate_change, results_or_strategy_update, partnership_announcement]
+    notes: |
+      For each target organisation, the Organisation Mapper records the
+      press / news URL on the target_organisation record. Refresh / Watch
+      then polls that URL on its standard cadence.
+
+polling:
+  default_cadence_hours: 24
+  jitter_minutes: 30
+  max_articles_per_source_per_run: 20

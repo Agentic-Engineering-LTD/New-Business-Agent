@@ -1,0 +1,88 @@
+# Fit-score weights — Brand Licensing B2B
+#
+# The Opportunity Assessor uses these weights to compute a 0-100 fit
+# score for each target_organisation. Customer-specific overrides live in
+# customers/<customer>/thresholds.yaml under `fit_score.weight_overrides`
+# (any criterion not overridden uses the weight here).
+#
+# Weights sum to 1.0. Each criterion produces a 0-1 sub-score, which is
+# the weight-summed to a final 0-1 score and rendered as 0-100.
+
+weights:
+
+  category_fit:
+    weight: 0.25
+    description: |
+      Does the retailer already carry the customer's category, or close
+      adjacent categories? Highest single weight — selling into a
+      category the retailer has never stocked is the hardest sell.
+    inputs:
+      - target_organisation.categories_carried
+      - customer.targets.categories_in_scope (from customers/<customer>/targets.yaml)
+
+  white_space:
+    weight: 0.15
+    description: |
+      Among the customer's category set, what proportion is the retailer
+      NOT currently carrying? High white space = expansion opportunity;
+      low white space = displacement battle.
+    inputs:
+      - target_organisation.categories_carried
+      - customer.targets.categories_in_scope
+
+  brand_relevance:
+    weight: 0.20
+    description: |
+      Does the customer's licensed brand portfolio align with the
+      retailer's audience? Family retailer + kids' character licensing =
+      high; premium fashion retailer + character licensing = low.
+    inputs:
+      - target_organisation.banner_brands (audience inference)
+      - customer.brand.licensed_portfolio_summary (from customers/<customer>/brand.yaml)
+
+  deal_size_potential:
+    weight: 0.15
+    description: |
+      Bands the retailer into deal-size potential based on store count
+      band and revenue band, mapped against the customer's
+      target deal-size profile.
+    inputs:
+      - target_organisation.store_count_band
+      - target_organisation.revenue_band
+      - customer.targets.deal_size_profile
+
+  distribution_match:
+    weight: 0.10
+    description: |
+      Does the retailer's physical and online footprint match the
+      customer's logistics capability? Heavy bias against UK-only
+      customers chasing US-only retailers.
+    inputs:
+      - target_organisation.hq_country
+      - target_organisation.hq_region
+      - customer.targets.geographies_in_scope
+
+  signal_freshness:
+    weight: 0.10
+    description: |
+      How recent / active are the signals against this target? Recent
+      range launches and exec changes push the score up; quiet targets
+      drift down.
+    inputs:
+      - related signals.observed_date
+      - related signals.relevance
+
+  procurement_accessibility:
+    weight: 0.05
+    description: |
+      Has the Organisation Mapper been able to resolve a buying-line
+      contact at high or medium confidence? An unresolved target is
+      lower-priority than an equally-sized resolved one.
+    inputs:
+      - stakeholder records resolved against this target
+
+bands:
+  hot: [75, 100]
+  warm: [55, 74]
+  watch: [35, 54]
+  parked: [0, 34]
